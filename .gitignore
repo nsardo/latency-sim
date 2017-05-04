@@ -1,5 +1,5 @@
 .idea/
 cmake-build-debug/CMakeFiles/
-cmake-build-debug/cmake_install_cmake
+cmake-build-debug/cmake_install.cmake
 cmake-build-debug/CMakeCache.txt
 cmake-build-debug/LatencySim.cbp

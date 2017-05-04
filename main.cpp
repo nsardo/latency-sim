@@ -1,4 +1,5 @@
 #include <iostream>
+#include <string>
 #include <ctime>
 #include <cstdlib>
 #include <vector>
@@ -22,89 +23,143 @@
  * caused in the function by randomly generating a time to respond.
  */
 
+//FORWARD REFS
+struct CachedCall;
+void pruneCache();
+
+
+const int   WEIGHT      = 2;
+const float MA          = 2.0;
+const int   CACHE_SIZE  = 20;
+int LENGTH              = 0;
+
+std::vector<CachedCall*> cache { 0, 0, 0, 0, 0 };
+
 
 struct CachedCall {
-    int id;         //position in cache is id for purposes of this code
-    int weight;     //weight is indication of frequency called
-};
+    int                 id;
+    int                 weight;
+    std::vector<int>    duration_sample;
+    float               moving_avg;
 
-size_t size = 10;
-std::vector<CachedCall*> calls(size);
+    CachedCall( int id, int weight, std::vector<int> duration_sample, float moving_avg ) {
+        this->id = id;
+        this->weight = weight;
+        this->duration_sample = duration_sample;
+        this->moving_avg = moving_avg;
+    }
 
-
-/**
- * Simulate process taking various amounts of time
- * @return success when random time has elapsed
- */
-int simulateProcess() {
-
-    /* initialize random seed: */
-    srand ( time( NULL ) );
-
-    /* generate secret number between 1 and 10: */
-    int irand = rand() % 10 + 1;
-
-    double totalSeconds;
-    double delay = (double) irand;
-
-    std::cout << "Time to delay: " << irand << " seconds " << std::endl;
-
-    /* start timer */
-    clock_t startTime = clock();
-
-    while( true )
+    CachedCall MakeCachedCall()
     {
-        totalSeconds = ( clock() - startTime ) / CLOCKS_PER_SEC;
-        if( totalSeconds >= delay )
-        {
-            return 1;
+        CachedCall c = { this->id, this->weight, this->duration_sample, this->moving_avg };
+
+        return c;
+    }
+
+    void randomLatencyCall() {
+
+        std::cout << "Call arrived from " << this->id << std::endl;
+
+        /* generate secret number between 1 and 10: */
+        int irand = rand() % 10 + 1;
+
+        std::cout << "Latency: " << irand << " seconds " << std::endl;
+
+        /* BUMP FREQUENCY OF THIS CALL */
+        this->weight++;
+
+        /* STORE AMOUNT OF TIME THIS CALL TOOK */
+        this->duration_sample.push_back( irand );
+
+        /* CREATE A MOVING AVERAGE FROM CALL TIMES */
+        float moving_average = this->sum() / float( this->duration_sample.size() );
+
+        this->moving_avg = moving_average;
+
+        if ( LENGTH >= 4 ) {
+            this->pruneCache();
+            //return;
+        }
+
+        if ( cache.at(this->id) != 0 ) { /* IT EXISTS IN CACHE */
+            cache.at(this->id) = new CachedCall{ this->id, this->weight, this->duration_sample, this->moving_avg };
+            std::cout << "Returned from cache " << this->id << " WEIGHT: " << this->weight << " MA: " << this->moving_avg << " SIZE: " << (this->duration_sample).size() << std::endl;
+            return;
+        } else {
+            cache.at(this->id) = new CachedCall{ this->id, this->weight, this->duration_sample, this->moving_avg };
+            std::cout << this->id << " was cached " << " WEIGHT: " << this->weight << " MA: " << this->moving_avg << " SIZE: " << (this->duration_sample).size() << std::endl;
+            LENGTH++;
+            return;
         }
     }
-}
 
-/*
- * Mock function simulating call to lengthy process
- */
-int makeMockCall( std::vector<CachedCall*> &ptr, int call_number ) {
+    int sum() {
+        int sm = 0;
+        int len = this->duration_sample.size();
+        if ( len == 0 ) return 0;
 
-    std::clock_t start;
-    double duration;
-    start = std::clock();
-
-    while(1)
-        if ( simulateProcess() == 1 ) {
-            duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
-
-            if ( duration >= 3 ) {
-
-                // ADD THIS data TO VECTOR
-                ptr[call_number]->weight++;
-
-                std::cout << "Long Query!!" << std::endl;
-            } else {
-                std::cout << "Short Query" << std::endl;
-            }
-
-            std::cout <<  duration << " seconds have passed..." << std::endl;
-            return 1;
+        for( int i = 0; i < len; i++ ) {
+            sm += this->duration_sample[i];
         }
-}
+        return sm;
+    }
+
+    void pruneCache() {
+        std::cout << "**** PRUNING ****" << std::endl;
+        int len = cache.size();
+        for ( int i = 0; i < len; i++ ) {
+            if ( cache.at(i) == 0 ) continue;
+            //IF WEIGHT AND MOVING AVERAGE ARE NOT AT PRESCRIBED LEVEL, CHUCK CALL IT
+            if ( (cache.at(i)->weight < WEIGHT) && (cache.at(i)->moving_avg < MA) ) {
+                std::cout << "*** Call " << cache.at(i)->id << " has been removed ***" << std::endl;
+                delete cache[i];
+                cache[i] = 0;
+                LENGTH--;
+            }
+        }
+    }
+};
+
 
 
 int main( int args,char* argv[] )
 {
-    //INITIALIZE VECTOR
-    for ( int i = 0; i < calls.size(); i++ ) {
-        CachedCall *cptr = new CachedCall;
-        cptr->id = i;
-        cptr->weight = 0;
-        calls[i] = cptr;
+    /* initialize random seed: */
+    srand ( time( NULL ) );
+
+    std::vector<int> a1, a2, a3, a4, a5;
+
+    //INITIALIZE CALLS
+    CachedCall *call0 = new CachedCall{ 0,  0, a1, 0 };
+    CachedCall *call1 = new CachedCall{ 1,  0, a2, 0 };
+    CachedCall *call2 = new CachedCall{ 2,  0, a3, 0 };
+    CachedCall *call3 = new CachedCall{ 3,  0, a4, 0 };
+    CachedCall *call4 = new CachedCall{ 4,  0, a5, 0 };
+
+    for ( int i = 0; i <= 20; i++ ) {
+        int irand = rand() % 5; // 0 - 4
+        switch ( irand ) {
+            case 0:
+                call0->randomLatencyCall();
+                break;
+            case 1:
+                call1->randomLatencyCall();
+                break;
+            case 2:
+                call2->randomLatencyCall();
+                break;
+            case 3:
+                call3->randomLatencyCall();
+                break;
+            case 4:
+                call4->randomLatencyCall();
+                break;
+        }
     }
 
-    makeMockCall( calls, 0 );
-    makeMockCall( calls, 1 );
-
-    std::cout << "success" << std::endl;
-    std::cout << calls[0]->id << " " << calls[0]->weight << std::endl;
-    std::cout << calls[1]->id << " " << calls[1]->weight << std::endl;
+    std::cout << "At Bottom " << std::endl;
+    int len = cache.size();
+    for ( int i = 0; i < len; i++ ) {
+        std::cout << "id: " << cache.at(i)->id << " weight: " << cache.at(i)->weight << " ma: " << cache.at(i)->moving_avg << std::endl;
+    }
 }
