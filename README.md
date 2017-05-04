@@ -4,8 +4,8 @@
  
  ### EXPLORATORY CODE
  Heuristic to simulate a blocking call to various processes that will take a varying length of time:
- Cache the calls that consistently take the longest into memory so that they can be
- immediately returned, cutting down on latency.
+ Cache the calls that consistently take the longest, and/or are called the most frequently, into 
+ memory so that they can be immediately returned, cutting down on latency.
 
  ### ASSUMPTION:
  The bulk of the calls will be to a statistically significant and quantifiably repetitive group
