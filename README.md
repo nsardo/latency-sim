@@ -7,10 +7,6 @@
  Cache the calls that consistently take the longest, and/or are called the most frequently, into 
  memory so that they can be immediately returned, cutting down on latency. These variables are controlled by magic numbers at the top of the file.
 
- ### ASSUMPTION:
- The bulk of the calls will be to a statistically significant and quantifiably repetitive group
- out of the whole, thereby requiring a small sample of the whole to be cached
-
 ### OPERATION
 As each call is made, an execution record saves the following metrics:
 - call name
