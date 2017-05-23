@@ -28,9 +28,9 @@ struct CachedCall;
 void pruneCache();
 
 
-const int   WEIGHT      = 2;
-const float MA          = 2.0;
-const int   CACHE_SIZE  = 20;
+constexp int   WEIGHT      = 2;
+constexp float MA          = 2.0;
+constexp int   CACHE_SIZE  = 20;
 int LENGTH              = 0;
 
 std::vector<CachedCall*> cache { 0, 0, 0, 0, 0 };
@@ -43,10 +43,10 @@ struct CachedCall {
     float               moving_avg;
 
     CachedCall( int id, int weight, std::vector<int> duration_sample, float moving_avg ) {
-        this->id = id;
-        this->weight = weight;
-        this->duration_sample = duration_sample;
-        this->moving_avg = moving_avg;
+        this->id                = id;
+        this->weight            = weight;
+        this->duration_sample   = duration_sample;
+        this->moving_avg        = moving_avg;
     }
 
     CachedCall MakeCachedCall()
@@ -94,7 +94,7 @@ struct CachedCall {
     }
 
     int sum() {
-        int sm = 0;
+        int sm  = 0;
         int len = this->duration_sample.size();
         if ( len == 0 ) return 0;
 
