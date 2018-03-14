@@ -19,3 +19,9 @@ Each time the same call is made, parts of the execution record are updated, and 
 Periodically, a sort of "garbage collector" scans through the cache to remove cached calls that don't meet the parameters chosen. Obviously as the cache get's larger, this wouldn't be a great strategy. This activity could possibly be ported to a cronjob, or the cache could be progressively bifurcated and cleaned in paralell processes.
 
  ### Binary build on OS X system
+ To build on your system, you'll require CMake. Then, open a terminal within the
+ project and enter:
+ ```
+ cmake CMakeLists.txt
+ ```
+
